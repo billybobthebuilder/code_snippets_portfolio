@@ -7,74 +7,91 @@ using TMPro;
 
 public class SettingsMenu : MonoBehaviour
 {
-    public GameObject SettingsMenuObject; // assign in inspector
-    public Slider MouseSensitivitySlider; // assign in inspector
-    public Slider DespawnTimerSlider; // assign in inspector
-    public TMP_Dropdown DifficultyDropdown; // assign in inspector
-    public Button BackButton; // assign in inspector
-    public GameObject MenuObject;
-    public Toggle unlockAllPerks;
+
+    // UI elements created in Unity Editor
+
+    public GameObject SettingsMenuObject; // Assign in inspector
+    public Slider MouseSensitivitySlider; // Assign in inspector
+    public Slider DespawnTimerSlider; // Assign in inspector
+    public TMP_Dropdown DifficultyDropdown; // Assign in inspector
+    public Button BackButton; // Assign in inspector
+    public GameObject MenuObject; // Assign in inspector
+    public Toggle unlockAllPerks; // Assign in inspector
+    
+
+    // String constants to be used for saving/loading methods
 
     private const string MouseSensitivityKey = "MouseSensitivity";
     private const string DespawnTimerKey = "DespawnTimer";
     private const string DifficultyKey = "Difficulty";
 
 
-    public TMP_Text text;
+    
+    // Float that will be used for altering Enemy/Player/Other 
+    private float difficultyCoefficient = 1f;
 
-    public float difficultyCoefficient;
-
-    // These could be stored somewhere else, like a GameSettings object
+    // Could be stored in the GameSettings script and object, kept here for readability purposes
     public float despawnTimer = 15f;
-    public float mouseSensitivity = 300f; // Default to 0.5
-    public string difficulty = "PLAYABLE"; // Default to Medium
+    public float mouseSensitivity = 300f; // Default to 300
+    public string difficulty = "PLAYABLE"; // Default to PLAYABLE
 
-    public List<string> textList;
+    // Just a little funny bit of just showing different "taunting/teasing" text when hovering over difficulty button
+    public List<string> textList; // Text list to be assigned in inspector
+    public TMP_Text text; // Assign in inspector
     private bool isMouseOverDropdown = false;
 
     void Start()
     {
-
+        // Load game settings
         LoadSettings();
 
+
+        // These are to be used in coordination with a Player related script. It basically unlocks/locks all Player perks. Used predominantly as a debugging, testing or cheat tool.
         unlockAllPerks.onValueChanged.AddListener(GameManager.Instance.SetKatanaAcquired);
         unlockAllPerks.onValueChanged.AddListener(GameManager.Instance.SetDashAcquired);
         unlockAllPerks.onValueChanged.AddListener(GameManager.Instance.SetDoubleJumpAcquired);
         unlockAllPerks.onValueChanged.AddListener(GameManager.Instance.SetKickAcquired);
         unlockAllPerks.onValueChanged.AddListener(GameManager.Instance.SetNukeAcquired);
         unlockAllPerks.onValueChanged.AddListener(GameManager.Instance.SetWallJumpAcquired);
+
+
         BackButton.onClick.AddListener(GoBack);
 
         text.enabled = false;
 
-        // Set up the mouse sensitivity slider
+        // Slider to control mouse sensitivity
         MouseSensitivitySlider.value = mouseSensitivity;
         MouseSensitivitySlider.onValueChanged.AddListener(SetMouseSensitivity);
 
+
+
+        // Despawn timer of most entities, to reduce lag and such
         DespawnTimerSlider.value = despawnTimer;
+
+        
         DespawnTimerSlider.onValueChanged.AddListener(SetDespawnTimer);
-        // Set up the difficulty dropdown
+
+        // Dropdown for different difficulty settings
         DifficultyDropdown.value = GetDifficultyIndex(difficulty);
         DifficultyDropdown.onValueChanged.AddListener(SetDifficulty);
-        difficultyCoefficient = 1f;
+        //difficultyCoefficient = 1f;
         
-        SettingsMenuObject.SetActive(false); // Make sure settings menu is not showing at the start
+        SettingsMenuObject.SetActive(false); // Ensuring the settings menu is not showing at the start
     }
+
     void SetDespawnTimer(float value)
     {
         despawnTimer = value;
         SaveSettings();
 
-        // Here, you should update the mouse sensitivity in your input system
-        // This will depend on how you have set up your input
+        
     }
     void SetMouseSensitivity(float value)
     {
         mouseSensitivity = value;
         SaveSettings();
 
-        // Here, you should update the mouse sensitivity in your input system
-        // This will depend on how you have set up your input
+        
     }
 
     void SetDifficulty(int index)
@@ -83,12 +100,15 @@ public class SettingsMenu : MonoBehaviour
         SaveSettings();
 
         StartCoroutine(BroadcastAll());
-        GameSettings.isASissy = true;
-        //BroadcastAll("DifficultyChange", difficultyCoefficient);
+
         
-        // Here, you should update the difficulty in your game
-        // This will depend on how you have set up your game
+         
+        
+        
     }
+
+    
+    // Coroutine available to be called to change Enemy settings, based on difficulty coefficient (i.e. HP, damage, etc.)
     IEnumerator BroadcastAll()
     {
         
@@ -103,6 +123,8 @@ public class SettingsMenu : MonoBehaviour
             
         }
     }
+
+    // Integer method used to return the difficulty string's list index
     int GetDifficultyIndex(string difficulty)
     {
         for (int i = 0; i < DifficultyDropdown.options.Count; i++)
@@ -116,9 +138,11 @@ public class SettingsMenu : MonoBehaviour
         return 0; // Default to the first option if the difficulty wasn't found
     }
 
-    void GoBack()
+
+    // Just switching back to main menu
+    void GoBack()       
     {
-        // Implement your go back logic here
+        
         SettingsMenuObject.SetActive(false);
         MenuObject.SetActive(true);
     }
@@ -138,10 +162,9 @@ public class SettingsMenu : MonoBehaviour
             }
 
         }
-        //Debug.Log(difficultyCoefficient);
-        //Debug.Log(GameSettings.despawnTimer);
-        //Debug.Log(difficulty + "+" + difficultyCoefficient );
         
+
+        //Changes difficulty coefficient based on difficulty
 
         if (difficulty == "MOBILE GAMER")
             difficultyCoefficient = 0.1f;
@@ -182,11 +205,10 @@ public class SettingsMenu : MonoBehaviour
 
     private bool IsMouseOverDropdown()
     {
-        return RectTransformUtility.RectangleContainsScreenPoint(
-            DifficultyDropdown.GetComponent<RectTransform>(),
-            Input.mousePosition,
-            null);
+        return RectTransformUtility.RectangleContainsScreenPoint(DifficultyDropdown.GetComponent<RectTransform>(), Input.mousePosition, null);
     }
+
+    //Cheeky random "taunting/teasing" text bit method
     private string GetRandomText()
     {
         if (textList.Count > 0)
@@ -196,11 +218,11 @@ public class SettingsMenu : MonoBehaviour
         }
         else
         {
-            return "";
+            return "";  // Return nothing if null list count
         }
     }
 
-    // New function to save settings to PlayerPrefs
+    // Method to save settings to PlayerPrefs
     private void SaveSettings()
     {
         PlayerPrefs.SetFloat(MouseSensitivityKey, mouseSensitivity);
@@ -209,7 +231,7 @@ public class SettingsMenu : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    // New function to load settings from PlayerPrefs
+    // Method to load settings from PlayerPrefs
     private void LoadSettings()
     {
         if (PlayerPrefs.HasKey(MouseSensitivityKey))
